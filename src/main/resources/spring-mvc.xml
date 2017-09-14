@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/mvc
+		http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/aop
+		http://www.springframework.org/schema/aop/spring-aop-4.0.xsd ">
+
+    <mvc:view-controller path="/history" view-name="history"></mvc:view-controller>
+    <!-- aspectj aop启用CGliB代理 -->
+    <aop:aspectj-autoproxy expose-proxy="true" proxy-target-class="true"/>
+    <!--自动去扫描base-pack下面或者子包下面的Java文件，如果扫描到有@Component,@Service,@Controller,@Repository等这些注解的类，
+则把这些类注册为bean-->
+    <context:component-scan base-package="com.zhou.hai.controller;com.zhou.hai.charge.scan"/>
+
+    <!-- 配置视图解析器-->
+   <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+       <property name="prefix" value="/WEB-INF/view/"/>
+       <property name="suffix" value=".jsp"/>
+   </bean>
+
+    <!--default-servlet-handler 将在 SpringMVC 上下文中定义一个 DefaultServletHttpRequestHandler,
+    它会对进入 DispatcherServlet 的请求进行筛查, 如果发现是没有经过映射的请求, 就将该请求交由 WEB 应用服务器默认的
+    Servlet 处理. 如果不是静态资源的请求，才由 DispatcherServlet 继续处理。一般 WEB 应用服务器默认的 Servlet 的名称都是
+    default.(在tomcat的cnf中的web.xml中可以找到该servlet配置)若所使用的 WEB 服务器的默认 Servlet 名称不是 default，
+    则需要通过 default-servlet-name 属性显式指定-->
+    <!--order值要比<mvc:annotation-driven>和其他自定义的 HandlerMapping实例小，要放在最前？？？-->
+    <mvc:default-servlet-handler></mvc:default-servlet-handler>
+    <!-- 访问拦截  -->
+    <!--<mvc:interceptors>-->
+        <!--<mvc:interceptor>-->
+            <!--<mvc:mapping path="/**/**"/>-->
+            <!--<bean class="com.zhou.hai.interceptor.LoginInterceptor"/>-->
+        <!--</mvc:interceptor>-->
+    <!--</mvc:interceptors>-->
+
+<!--<mvc:annotation-driven>自动加载RequestMappingHandlerMapping和RequestMappingHandlerAdapter，
+可用在springmvc.xml配置文件中使用<mvc:annotation-driven>替代注解处理器和适配器的配置。-->
+    <!--<mvc:annotation-driven></mvc:annotation-driven>-->
+
+
+    <!-- 文件上传 -->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!-- 设置上传文件的最大尺寸为5MB -->
+        <property name="maxUploadSize">
+            <value>5242880</value>
+        </property>
+    </bean>
+
+    <!-- 简化配置：
+        (1)自动注册DefaultAnootationHandlerMapping,AnotationMethodHandlerAdapter
+        (2)提供一些列：数据绑定，数字和日期的format @NumberFormat, @DateTimeFormat, xml,json默认读写支持
+    -->
+    <!-- csrf HttpSessionCsrfTokenRepository -->
+    <bean class="com.zhou.hai.charge.csrf.HttpSessionCsrfTokenRepository" />
+
+    <!-- Spring csrf 拦截器 -->
+    <mvc:interceptors>
+        <mvc:interceptor>
+            <mvc:mapping path="/login" />
+            <bean class="com.zhou.hai.charge.csrf.CsrfInterceptor" />
+        </mvc:interceptor>
+    </mvc:interceptors>
+
+    <mvc:annotation-driven>
+    <mvc:message-converters register-defaults="false">
+        <!-- StringHttpMessageConverter编码为UTF-8，防止@ResponseBody乱码问题 -->
+        <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+            <constructor-arg value="UTF-8"/>
+        </bean>
+        <bean id="fastJsonHttpMessageConverter" class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+            <property name="supportedMediaTypes">
+            <list>
+                <value>text/html;charset=UTF-8</value>
+                <value>application/json;charset=UTF-8</value>
+            </list>
+            </property>
+            <property name="objectMapper">
+                <bean class="com.fasterxml.jackson.databind.ObjectMapper">
+                    <property name="dateFormat">
+                        <bean class="java.text.SimpleDateFormat">
+                            <constructor-arg type="java.lang.String" value="yyyy-MM-dd" />
+                        </bean>
+                    </property>
+                </bean>
+            </property>
+        </bean>
+    </mvc:message-converters>
+    </mvc:annotation-driven>
+
+    <!-- 启用shrio 控制器授权注解拦截方式 -->
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+    <!-- 保证实现了Shiro内部lifecycle函数的bean执行 -->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+    <!-- AOP式方法级权限检查  -->
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+          depends-on="lifecycleBeanPostProcessor">
+        <property name="proxyTargetClass" value="true"/>
+    </bean>
+
+</beans>

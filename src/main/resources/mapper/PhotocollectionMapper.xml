@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zhou.hai.mapper.PhotocollectionMapper" >
+  <resultMap id="BaseResultMap" type="com.zhou.hai.domain.Photocollection" >
+    <id column="photocollection_id" property="photocollectionId" jdbcType="BIGINT" />
+    <result column="title" property="title" jdbcType="VARCHAR" />
+    <result column="date" property="date" jdbcType="DATE" />
+  </resultMap>
+  <resultMap id="PhotocollectionWithNumber" type="com.zhou.hai.domain.Photocollection" >
+    <id column="photocollection_id" property="photocollectionId" jdbcType="BIGINT" />
+    <result column="title" property="title" jdbcType="VARCHAR" />
+    <result column="date" property="date" jdbcType="DATE" />
+    <!--column="photocollection_id"不能少。此列的值作为参数
+传递给要引用的seleselectAllPhotosct语句，用来查询相应照片数。select属性指定要引用的select语句-->
+    <association property="number" column="photocollection_id" select="com.zhou.hai.mapper.PhotodetailMapper.coutByPhotocollectionId"></association>
+  </resultMap>
+  <resultMap id="PhotocollectionWithOnePhoto" type="com.zhou.hai.domain.Photocollection" >
+    <id column="photocollection_id" property="photocollectionId" jdbcType="BIGINT" />
+    <result column="title" property="title" jdbcType="VARCHAR" />
+    <result column="date" property="date" jdbcType="DATE" />
+    <!--column="photocollection_id"不能少。此列的值作为参数
+传递给要引用的seleselectAllPhotosct语句，用来查询相应照片数。select属性指定要引用的select语句-->
+    <association property="photodetailList" column="photocollection_id" select="com.zhou.hai.mapper.PhotodetailMapper.selectOneByPhotocollectionId"></association>
+  </resultMap>
+  <resultMap id="PhotocollectionDetail" type="com.zhou.hai.domain.Photocollection" >
+    <id column="photocollection_id" property="photocollectionId" jdbcType="BIGINT" />
+    <result column="title" property="title" jdbcType="VARCHAR" />
+    <result column="date" property="date" jdbcType="VARCHAR" />
+    <collection property="photodetailList" ofType="com.zhou.hai.domain.Photodetail">
+      <id column="id" property="id" jdbcType="BIGINT" />
+      <result column="photo" property="photo" jdbcType="VARCHAR" />
+      <result column="introduce" property="introduce" jdbcType="VARCHAR" />
+    </collection>
+  </resultMap>
+
+
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    photocollection_id, title,date,
+  </sql>
+  <select id="selectAll" resultMap="PhotocollectionWithNumber" parameterType="string">
+    SELECT
+    date,title,photocollection_id
+    FROM
+    hai.photocollection
+    <if test=" keyword!= null and keyword!= ''" >
+    WHERE title LIKE '%${keyword}%'
+    </if>
+    ORDER BY photocollection_id DESC
+  </select>
+  <select id="getPhotosByPhotoCollectionId" resultMap="PhotocollectionDetail" parameterType="java.lang.Long">
+    SELECT
+    pc.*,pd.*
+    FROM
+    hai.photocollection pc,hai.photodetail pd
+    WHERE
+    pc.photocollection_id=#{id} and pd.photocollection_id=pc.photocollection_id
+  </select>
+  <insert id="insertSelective" useGeneratedKeys="true" keyProperty="photocollectionId"  parameterType="com.zhou.hai.domain.Photocollection" >
+    insert into photocollection
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="photocollectionId != null" >
+        photocollection_id,
+      </if>
+      <if test="title != null" >
+        title,
+      </if>
+      <if test="date != null" >
+        date,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="photocollectionId != null" >
+        #{photocollectionId,jdbcType=BIGINT},
+      </if>
+      <if test="title != null" >
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="date != null" >
+        #{date,jdbcType=DATE},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zhou.hai.domain.Photocollection" >
+    update photocollection
+    <set >
+      <if test="title != null" >
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="date != null" >
+        date=#{date,jdbcType=DATE},
+      </if>
+    </set>
+    where photocollection_id = #{photocollectionId,jdbcType=BIGINT}
+  </update>
+
+  <select id="selectAllPhotos" resultMap="PhotocollectionWithOnePhoto" parameterType="string">
+    SELECT
+    pc.*
+    FROM
+    hai.photocollection pc,hai.photodetail pd
+    WHERE
+    pd.photocollection_id=pc.photocollection_id
+    <if test=" keyword!= null and keyword!= ''" >
+    AND (pc.title LIKE '%${keyword}%' OR pd.introduce LIKE '%${keyword}%')
+    </if>
+    ORDER BY pd.photocollection_id DESC
+  </select>
+
+  <select id="getPrePhotoByPhotoCollectionId" resultMap="PhotocollectionWithOnePhoto" parameterType="java.lang.Long">
+    SELECT
+    pc.*
+    FROM
+    hai.photocollection pc
+    WHERE
+    <![CDATA[pc.photocollection_id < #{id,jdbcType=BIGINT}]]>
+    ORDER BY pc.photocollection_id DESC limit 1;
+  </select>
+  <select id="getAftPhotoByPhotoCollectionId" resultMap="PhotocollectionWithOnePhoto" parameterType="java.lang.Long">
+    SELECT
+    pc.*
+    FROM
+    hai.photocollection pc
+    WHERE
+    <![CDATA[pc.photocollection_id > #{id,jdbcType=BIGINT}]]>
+    ORDER BY pc.photocollection_id ASC limit 1;
+  </select>
+
+</mapper>

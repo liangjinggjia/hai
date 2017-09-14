@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zhou.hai.mapper.PostMapper" >
+  <resultMap id="BaseResultMap" type="com.zhou.hai.domain.Post" >
+    <id column="post_id" property="postId" jdbcType="BIGINT" />
+    <result column="post_author" property="postAuthor" jdbcType="VARCHAR" />
+    <result column="post_unit_id" property="postUnitId" jdbcType="INTEGER" />
+    <result column="post_date" property="postDate" jdbcType="DATE" />
+    <result column="post_status" property="postStatus" jdbcType="INTEGER" />
+    <result column="post_type" property="postType" jdbcType="VARCHAR" />
+    <result column="comment_id" property="commentId" jdbcType="BIGINT" />
+    <result column="comment_count" property="commentCount" jdbcType="BIGINT" />
+    <result column="post_no" property="postNo" jdbcType="VARCHAR" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.zhou.hai.domain.PostWithBLOBs" extends="BaseResultMap" >
+    <result column="post_title" property="postTitle" jdbcType="LONGVARCHAR" />
+    <result column="post_content" property="postContent" jdbcType="LONGVARCHAR" />
+    <result column="post_abstract" property="postAbstract" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    post_id, post_author, post_unit_id, post_date, post_status, post_type, comment_id, 
+    comment_count, post_no
+  </sql>
+  <sql id="Blob_Column_List" >
+    post_title, post_content, post_abstract
+  </sql>
+  <select id="selectLatest" resultMap="ResultMapWithBLOBs" parameterType="int">
+    SELECT
+    post_id,post_title,post_author,post_date
+    FROM
+    hai.post
+    WHERE post_status=1
+    ORDER BY post_id DESC
+    LIMIT #{number};
+  </select>
+  <select id="selectAll" resultMap="ResultMapWithBLOBs" parameterType="string">
+    SELECT
+    post_id,post_title,post_author,post_date,post_abstract
+    FROM
+    hai.post
+    WHERE post_status=1
+    <if test=" keyword!= null and keyword!= ''" >
+    AND (post_title LIKE '%${keyword}%' OR post_abstract LIKE '%${keyword}%')
+    </if>
+    ORDER BY post_id DESC
+  </select>
+  <update id="updatePostToReject" parameterType="java.lang.Long" >
+    update post
+    <set >
+      post_no = 1,
+    </set>
+    where post_id = #{postId}
+  </update>
+  <update id="updatePostToNopass" parameterType="java.lang.Long" >
+    update post
+    <set >
+      post_status = 0,
+    </set>
+    where post_id = #{postId}
+  </update>
+  <select id="selectUnckeck" resultMap="ResultMapWithBLOBs">
+    SELECT
+    post_id,post_title,post_author,post_date,post_unit_id
+    FROM
+    hai.post
+    WHERE
+    post_status=0 AND post_no=0
+    <if test=" keyWord != null and keyWord != '' ">
+      AND post_title LIKE '%${keyWord}%' OR post_abstract LIKE '%${keyWord}%'
+    </if>
+    ORDER BY post_id DESC
+  </select>
+  <select id="selectPassByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from post
+    where post_id = #{postId,jdbcType=BIGINT} AND post_status=1
+  </select>
+  <select id="selectPass" resultMap="ResultMapWithBLOBs">
+    SELECT
+    post_id,post_title,post_author,post_date,post_unit_id
+    FROM
+    hai.post
+    WHERE
+    post_status=1
+    <if test=" keyWord != null and keyWord != '' ">
+     AND post_title LIKE '%${keyWord}%' OR post_abstract LIKE '%${keyWord}%'
+    </if>
+    ORDER BY post_id DESC
+  </select>
+  <select id="selectReject" resultMap="ResultMapWithBLOBs">
+    SELECT
+    post_id,post_title,post_author,post_date,post_unit_id
+    FROM
+    hai.post
+    WHERE
+    post_no=1
+    <if test=" keyWord != null and keyWord != '' ">
+      AND post_title LIKE '%${keyWord}%' OR post_abstract LIKE '%${keyWord}%'
+    </if>
+    ORDER BY post_id DESC
+  </select>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zhou.hai.domain.PostWithBLOBs" >
+    update post
+    <set >
+      <if test="postAuthor != null" >
+        post_author = #{postAuthor,jdbcType=VARCHAR},
+      </if>
+      <if test="postUnitId != null" >
+        post_unit_id = #{postUnitId,jdbcType=INTEGER},
+      </if>
+      <if test="postDate != null" >
+        post_date = #{postDate,jdbcType=DATE},
+      </if>
+
+        post_status = 1,
+
+      <if test="postType != null" >
+        post_type = #{postType,jdbcType=VARCHAR},
+      </if>
+      <if test="commentId != null" >
+        comment_id = #{commentId,jdbcType=BIGINT},
+      </if>
+      <if test="commentCount != null" >
+        comment_count = #{commentCount,jdbcType=BIGINT},
+      </if>
+
+      <if test="postTitle != null" >
+        post_title = #{postTitle,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="postContent != null" >
+        post_content = #{postContent,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="postAbstract != null" >
+        post_abstract = #{postAbstract,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where post_id = #{postId,jdbcType=BIGINT}
+  </update>
+  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.zhou.hai.domain.PostExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from post
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.zhou.hai.domain.PostExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from post
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from post
+    where post_id = #{postId,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from post
+    where post_id = #{postId,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.zhou.hai.domain.PostExample" >
+    delete from post
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.zhou.hai.domain.PostWithBLOBs" >
+    insert into post (post_id, post_author, post_unit_id, 
+      post_date, post_status, post_type, 
+      comment_id, comment_count, post_no, 
+      post_title, post_content, post_abstract
+      )
+    values (#{postId,jdbcType=BIGINT}, #{postAuthor,jdbcType=VARCHAR}, #{postUnitId,jdbcType=INTEGER}, 
+      #{postDate,jdbcType=DATE}, #{postStatus,jdbcType=INTEGER}, #{postType,jdbcType=VARCHAR}, 
+      #{commentId,jdbcType=BIGINT}, #{commentCount,jdbcType=BIGINT}, #{postNo,jdbcType=VARCHAR}, 
+      #{postTitle,jdbcType=LONGVARCHAR}, #{postContent,jdbcType=LONGVARCHAR}, #{postAbstract,jdbcType=LONGVARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.zhou.hai.domain.PostWithBLOBs" >
+    insert into post
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="postId != null" >
+        post_id,
+      </if>
+      <if test="postAuthor != null" >
+        post_author,
+      </if>
+      <if test="postUnitId != null" >
+        post_unit_id,
+      </if>
+      <if test="postDate != null" >
+        post_date,
+      </if>
+      <if test="postStatus != null" >
+        post_status,
+      </if>
+      <if test="postType != null" >
+        post_type,
+      </if>
+      <if test="commentId != null" >
+        comment_id,
+      </if>
+      <if test="commentCount != null" >
+        comment_count,
+      </if>
+      <if test="postNo != null" >
+        post_no,
+      </if>
+      <if test="postTitle != null" >
+        post_title,
+      </if>
+      <if test="postContent != null" >
+        post_content,
+      </if>
+      <if test="postAbstract != null" >
+        post_abstract,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="postId != null" >
+        #{postId,jdbcType=BIGINT},
+      </if>
+      <if test="postAuthor != null" >
+        #{postAuthor,jdbcType=VARCHAR},
+      </if>
+      <if test="postUnitId != null" >
+        #{postUnitId,jdbcType=INTEGER},
+      </if>
+      <if test="postDate != null" >
+        #{postDate,jdbcType=DATE},
+      </if>
+      <if test="postStatus != null" >
+        #{postStatus,jdbcType=INTEGER},
+      </if>
+      <if test="postType != null" >
+        #{postType,jdbcType=VARCHAR},
+      </if>
+      <if test="commentId != null" >
+        #{commentId,jdbcType=BIGINT},
+      </if>
+      <if test="commentCount != null" >
+        #{commentCount,jdbcType=BIGINT},
+      </if>
+      <if test="postNo != null" >
+        #{postNo,jdbcType=VARCHAR},
+      </if>
+      <if test="postTitle != null" >
+        #{postTitle,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="postContent != null" >
+        #{postContent,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="postAbstract != null" >
+        #{postAbstract,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.zhou.hai.domain.PostExample" resultType="java.lang.Integer" >
+    select count(*) from post
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update post
+    <set >
+      <if test="record.postId != null" >
+        post_id = #{record.postId,jdbcType=BIGINT},
+      </if>
+      <if test="record.postAuthor != null" >
+        post_author = #{record.postAuthor,jdbcType=VARCHAR},
+      </if>
+      <if test="record.postUnitId != null" >
+        post_unit_id = #{record.postUnitId,jdbcType=INTEGER},
+      </if>
+      <if test="record.postDate != null" >
+        post_date = #{record.postDate,jdbcType=DATE},
+      </if>
+      <if test="record.postStatus != null" >
+        post_status = #{record.postStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.postType != null" >
+        post_type = #{record.postType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.commentId != null" >
+        comment_id = #{record.commentId,jdbcType=BIGINT},
+      </if>
+      <if test="record.commentCount != null" >
+        comment_count = #{record.commentCount,jdbcType=BIGINT},
+      </if>
+      <if test="record.postNo != null" >
+        post_no = #{record.postNo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.postTitle != null" >
+        post_title = #{record.postTitle,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="record.postContent != null" >
+        post_content = #{record.postContent,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="record.postAbstract != null" >
+        post_abstract = #{record.postAbstract,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExampleWithBLOBs" parameterType="map" >
+    update post
+    set post_id = #{record.postId,jdbcType=BIGINT},
+      post_author = #{record.postAuthor,jdbcType=VARCHAR},
+      post_unit_id = #{record.postUnitId,jdbcType=INTEGER},
+      post_date = #{record.postDate,jdbcType=DATE},
+      post_status = #{record.postStatus,jdbcType=INTEGER},
+      post_type = #{record.postType,jdbcType=VARCHAR},
+      comment_id = #{record.commentId,jdbcType=BIGINT},
+      comment_count = #{record.commentCount,jdbcType=BIGINT},
+      post_no = #{record.postNo,jdbcType=VARCHAR},
+      post_title = #{record.postTitle,jdbcType=LONGVARCHAR},
+      post_content = #{record.postContent,jdbcType=LONGVARCHAR},
+      post_abstract = #{record.postAbstract,jdbcType=LONGVARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update post
+    set post_id = #{record.postId,jdbcType=BIGINT},
+      post_author = #{record.postAuthor,jdbcType=VARCHAR},
+      post_unit_id = #{record.postUnitId,jdbcType=INTEGER},
+      post_date = #{record.postDate,jdbcType=DATE},
+      post_status = #{record.postStatus,jdbcType=INTEGER},
+      post_type = #{record.postType,jdbcType=VARCHAR},
+      comment_id = #{record.commentId,jdbcType=BIGINT},
+      comment_count = #{record.commentCount,jdbcType=BIGINT},
+      post_no = #{record.postNo,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zhou.hai.domain.PostWithBLOBs" >
+    update post
+    <set >
+      <if test="postAuthor != null" >
+        post_author = #{postAuthor,jdbcType=VARCHAR},
+      </if>
+      <if test="postUnitId != null" >
+        post_unit_id = #{postUnitId,jdbcType=INTEGER},
+      </if>
+      <if test="postDate != null" >
+        post_date = #{postDate,jdbcType=DATE},
+      </if>
+      <if test="postStatus != null" >
+        post_status = #{postStatus,jdbcType=INTEGER},
+      </if>
+      <if test="postType != null" >
+        post_type = #{postType,jdbcType=VARCHAR},
+      </if>
+      <if test="commentId != null" >
+        comment_id = #{commentId,jdbcType=BIGINT},
+      </if>
+      <if test="commentCount != null" >
+        comment_count = #{commentCount,jdbcType=BIGINT},
+      </if>
+      <if test="postNo != null" >
+        post_no = #{postNo,jdbcType=VARCHAR},
+      </if>
+      <if test="postTitle != null" >
+        post_title = #{postTitle,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="postContent != null" >
+        post_content = #{postContent,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="postAbstract != null" >
+        post_abstract = #{postAbstract,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where post_id = #{postId,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.zhou.hai.domain.PostWithBLOBs" >
+    update post
+    set post_author = #{postAuthor,jdbcType=VARCHAR},
+      post_unit_id = #{postUnitId,jdbcType=INTEGER},
+      post_date = #{postDate,jdbcType=DATE},
+      post_status = #{postStatus,jdbcType=INTEGER},
+      post_type = #{postType,jdbcType=VARCHAR},
+      comment_id = #{commentId,jdbcType=BIGINT},
+      comment_count = #{commentCount,jdbcType=BIGINT},
+      post_no = #{postNo,jdbcType=VARCHAR},
+      post_title = #{postTitle,jdbcType=LONGVARCHAR},
+      post_content = #{postContent,jdbcType=LONGVARCHAR},
+      post_abstract = #{postAbstract,jdbcType=LONGVARCHAR}
+    where post_id = #{postId,jdbcType=BIGINT}
+  </update>
+</mapper>

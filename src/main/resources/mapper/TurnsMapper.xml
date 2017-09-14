@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zhou.hai.mapper.TurnsMapper" >
+
+  <resultMap id="turn" type="com.zhou.hai.domain.Turns">
+    <result column="postid" property="postid" jdbcType="BIGINT" />
+    <result column="introduce" property="introduce" jdbcType="LONGVARCHAR" />
+    <result column="picture" property="picture" jdbcType="LONGVARCHAR" />
+    <result column="id" property="id" jdbcType="INTEGER" />
+  </resultMap>
+
+  <select id="getturns" resultMap="turn">
+    SELECT
+    id,postid,picture,introduce
+    FROM
+    hai.turns
+  </select>
+  <update id="updateTurn" parameterType="com.zhou.hai.domain.Turns">
+    UPDATE turns
+    <set>
+      <if test="picture!= null" >picture = #{picture},</if>
+      <if test="introduce!= null" >introduce = #{introduce},</if>
+      <if test="postid!=null"> postid = #{postid},</if>
+    </set>
+    where id = #{id}
+  </update>
+</mapper>

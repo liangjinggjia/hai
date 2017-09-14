@@ -1,0 +1,11 @@
+
+.add table td{border-bottom:1px dotted #c7c7c7; padding:10px 0; padding-left:20px;color:#646464; font-size:12px; font-weight:bold;line-height: 25px}
+.pn-flabel-h{height:27px;}
+.add input textarea{color:#858585;background-color:#fff;border:1px solid #d5d5d5;padding:10px 20px;line-height:1.2;font-size:24px;font-family:"微软雅黑";-webkit-box-shadow:none;box-shadow:none;-webkit-transition-duration:.1s;transition-duration:.1s;margin-left: 120px}
+.pass{border:2px solid #148c12!important; color:#148c12!important;font-size: larger!important;}
+.reject{border:2px solid #f23f3f!important; color:#f23f3f!important;font-size: larger!important;}
+.preview{border:2px solid #000000!important; color:#000000!important;font-size: larger!important;}
+.position{top: 40px;position: relative;}
+.navbar{min-height: 40px!important;}
+.tool{padding-top: 8px!important;padding-bottom: 8px!important;}
+.turn{border-bottom:2px solid #ededed; }

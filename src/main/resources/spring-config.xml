@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd"
+       default-autowire="byName">
+
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:config/*.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- aspectj aop启用CGliB代理 -->
+    <aop:aspectj-autoproxy expose-proxy="true" proxy-target-class="true"/>
+    <context:annotation-config/>
+    <!-- 扫描service ,domain ,controller-->
+    <!--由于服务器启动时的加载配置文件的顺序为web.xml>applicationContext.xml(Spring的配置文件)> *-servlet.xml(SpringMVC的配置文件)，
+    由于applicationContext.xml配置文件中Controller会先进行扫描装配，但是此时service还没有进行事务增强处理，
+    得到的将是原样的Service（没有经过事务加强处理，故而没有事务处理能力），所以我们 必须在applicationContext.xml中不扫描Controller
+    改为在Spring-mvc.xml中扫描Controller-->
+    <context:component-scan base-package="com.zhou.hai.service"/>
+    <context:component-scan base-package="com.zhou.hai.domain"/>
+
+    <import resource="classpath:spring/spring-mybatis.xml"/>
+    <import resource="classpath:spring/spring-ehcache.xml"/>
+    <!-- 
+    <import resource="classpath:spring/spring-redis.xml"/>
+     -->
+    <!-- Spring 异步event需要开启task -->
+    <!--<import resource="classpath:spring/spring-task.xml"/>-->
+    <import resource="classpath:spring/spring-shiro.xml"/>
+</beans>
